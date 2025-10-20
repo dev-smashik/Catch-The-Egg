@@ -480,3 +480,70 @@ void updateGame(float deltaTime) {
         }
     }
 }
+
+
+
+
+void keyboard(unsigned char key, int x, int y) {
+    keys[key] = true;
+    
+    switch (currentState) {
+        case MENU:
+            if (key == 13) { // Enter
+                resetGame();
+                currentState = PLAYING;
+                lastTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
+            } else if (key == 'h' || key == 'H') {
+                currentState = HELP;
+            } else if (key == 'q' || key == 'Q') {
+                exit(0);
+            }
+            break;
+            
+        case HELP:
+            if (key == 27) { // ESC
+                currentState = MENU;
+            }
+            break;
+            
+        case PLAYING:
+            if (key == 'p' || key == 'P') {
+                currentState = PAUSED;
+            } else if (key == 27) { // ESC
+                currentState = MENU;
+            }
+            break;
+            
+        case PAUSED:
+            if (key == 'p' || key == 'P') {
+                currentState = PLAYING;
+                lastTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
+            } else if (key == 27) { // ESC
+                currentState = MENU;
+            }
+            break;
+            
+        case GAME_OVER:
+            if (key == 13) { // Enter
+                resetGame();
+                currentState = PLAYING;
+                lastTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
+            } else if (key == 27) { // ESC
+                currentState = MENU;
+            }
+            break;
+    }
+}
+
+// Keyboard up callback
+void keyboardUp(unsigned char key, int x, int y) {
+    keys[key] = false;
+}
+
+// Mouse callback
+void mouse(int button, int state, int x, int y) {
+    if (currentState == PLAYING && button == GLUT_LEFT_BUTTON) {
+        mouseX = x;
+        basketX = x;
+    }
+}
