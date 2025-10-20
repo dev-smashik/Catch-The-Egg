@@ -138,4 +138,17 @@ void playSound(int frequency); // Simple sound
 void drawCircle(float cx, float cy, float r, int segments = 30);
 
 
-
+void init() {
+    glClearColor(0.53f, 0.81f, 0.92f, 1.0f);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(0, WINDOW_WIDTH, 0, WINDOW_HEIGHT);
+    glMatrixMode(GL_MODELVIEW);
+    srand(time(0));
+    
+    // Initialize chickens
+    initChickens();
+    
+    // Initialize airflow
+    currentAirflow.active = false;
+}
