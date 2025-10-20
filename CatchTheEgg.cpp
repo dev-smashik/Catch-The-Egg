@@ -170,3 +170,64 @@ void playSound(int frequency) {
 }
 
 
+
+void drawChicken(Chicken& chicken) {
+    if (!chicken.active) return;
+    
+    float bobbing = sin(animTime * 5) * 2;
+    float cx = chicken.x;
+    float cy = chicken.y + bobbing;
+    
+    // Body (white)
+    glColor3f(1.0f, 1.0f, 1.0f);
+    drawCircle(cx, cy, 20);
+    
+    // Head
+    drawCircle(cx, cy + 20, 12);
+    
+    // Beak (yellow)
+    glColor3f(1.0f, 0.8f, 0.0f);
+    glBegin(GL_TRIANGLES);
+    glVertex2f(cx + (chicken.direction * 12), cy + 20);
+    glVertex2f(cx + (chicken.direction * 20), cy + 18);
+    glVertex2f(cx + (chicken.direction * 12), cy + 16);
+    glEnd();
+    
+    // Eye (black)
+    glColor3f(0.0f, 0.0f, 0.0f);
+    drawCircle(cx + (chicken.direction * 4), cy + 23, 2);
+    
+    // Comb (red) - animated
+    glColor3f(1.0f, 0.0f, 0.0f);
+    glBegin(GL_TRIANGLES);
+    glVertex2f(cx - 3, cy + 28);
+    glVertex2f(cx, cy + 35 + bobbing);
+    glVertex2f(cx + 3, cy + 28);
+    glEnd();
+    
+    // Wings (animated flapping)
+    glColor3f(0.9f, 0.9f, 0.9f);
+    float wingFlap = sin(animTime * 8) * 5;
+    glBegin(GL_TRIANGLES);
+    // Left wing
+    glVertex2f(cx - 15, cy);
+    glVertex2f(cx - 25 - wingFlap, cy + 5);
+    glVertex2f(cx - 15, cy + 10);
+    // Right wing
+    glVertex2f(cx + 15, cy);
+    glVertex2f(cx + 25 + wingFlap, cy + 5);
+    glVertex2f(cx + 15, cy + 10);
+    glEnd();
+    
+    // Legs
+    glColor3f(1.0f, 0.8f, 0.0f);
+    glLineWidth(3);
+    glBegin(GL_LINES);
+    glVertex2f(cx - 8, cy - 20);
+    glVertex2f(cx - 8, cy - 5);
+    glVertex2f(cx + 8, cy - 20);
+    glVertex2f(cx + 8, cy - 5);
+    glEnd();
+}
+
+
