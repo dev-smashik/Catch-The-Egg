@@ -547,3 +547,13 @@ void mouse(int button, int state, int x, int y) {
         basketX = x;
     }
 }
+
+
+// Mouse motion callback
+void mouseMotion(int x, int y) {
+    if (currentState == PLAYING) {
+        basketX = x;
+        if (basketX < basketWidth/2) basketX = basketWidth/2;
+        if (basketX > WINDOW_WIDTH - basketWidth/2) basketX = WINDOW_WIDTH - basketWidth/2;
+    }
+}
