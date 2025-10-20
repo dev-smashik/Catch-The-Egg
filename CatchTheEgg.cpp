@@ -258,3 +258,225 @@ void drawAirflowIndicator() {
     const char* text = currentAirflow.direction > 0 ? "WIND >>>" : "<<< WIND";
     drawText(WINDOW_WIDTH/2 - 40, 600, text, GLUT_BITMAP_HELVETICA_18);
 }
+
+
+
+void updateGame(float deltaTime) {
+    if (currentState != PLAYING) return;
+    
+    animTime += deltaTime;
+    
+    // Update time
+    timeRemaining -= deltaTime;
+    if (timeRemaining <= 0) {
+        timeRemaining = 0;
+        currentState = GAME_OVER;
+        if (score > highScore) {
+            highScore = score;
+        }
+        return;
+    }
+    
+    // Activate third chicken after 20 seconds
+    if (gameTime - timeRemaining > 20 && chickens.size() > 2) {
+        chickens[2].active = true;
+    }
+    
+    // Update perk timer
+    if (perkTimer > 0) {
+        perkTimer -= deltaTime;
+        if (perkTimer <= 0) {
+            largerBasketActive = false;
+            slowTimeActive = false;
+            shieldActive = false;
+            magnetActive = false;
+            speedBoostActive = false;
+            basketWidth = 80;
+            basketSpeed = 15.0f;
+        }
+    }
+    
+    // Update airflow
+    airflowTimer += deltaTime;
+    if (airflowTimer > airflowInterval) {
+        currentAirflow.active = true;
+        currentAirflow.duration = 5.0f;
+        currentAirflow.strength = 2.0f + (rand() % 3);
+        currentAirflow.direction = (rand() % 2) * 2 - 1;
+        currentAirflow.startTime = animTime;
+        airflowTimer = 0;
+        playSound(400);
+    }
+    
+    if (currentAirflow.active) {
+        if (animTime - currentAirflow.startTime > currentAirflow.duration) {
+            currentAirflow.active = false;
+        }
+    }
+    
+    // Update chickens
+    for (auto& chicken : chickens) {
+        if (!chicken.active) continue;
+        
+        chicken.x += chicken.speed * chicken.direction;
+        if (chicken.x > chicken.stickRight - 30 || chicken.x < chicken.stickLeft + 30) {
+            chicken.direction *= -1;
+        }
+    }
+    
+    // Move basket
+    float currentSpeed = speedBoostActive ? basketSpeed * 2 : basketSpeed;
+    if (keys['a'] || keys['A']) {
+        basketX -= currentSpeed;
+    }
+    if (keys['d'] || keys['D']) {
+        basketX += currentSpeed;
+    }
+    
+    if (basketX < basketWidth/2) basketX = basketWidth/2;
+    if (basketX > WINDOW_WIDTH - basketWidth/2) basketX = WINDOW_WIDTH - basketWidth/2;
+    
+    // Spawn items
+    spawnTimer += deltaTime;
+    if (spawnTimer >= spawnInterval) {
+        for (int i = 0; i < chickens.size(); i++) {
+            if (chickens[i].active && (rand() % 2)) {
+                spawnItem(i);
+            }
+        }
+        spawnTimer = 0;
+    }
+    
+    // Update items
+    for (auto it = items.begin(); it != items.end();) {
+        it->y -= it->speed;
+        it->rotation += 2.0f;
+        
+        // Apply airflow
+        if (currentAirflow.active) {
+            it->vx += currentAirflow.strength * currentAirflow.direction * 0.1f;
+        }
+        
+        // Apply velocity with damping
+        it->x += it->vx;
+        it->vx *= 0.95f;
+        
+        // Check collision
+        if (checkCollision(*it)) {
+            bool caught = true;
+            
+            switch (it->type) {
+                case NORMAL_EGG:
+                    score += 1 + comboCount;
+                    comboCount++;
+                    createParticleExplosion(it->x, it->y, 1.0f, 1.0f, 1.0f);
+                    playSound(600);
+                    break;
+                case BLUE_EGG:
+                    score += 5 + comboCount * 2;
+                    comboCount++;
+                    createParticleExplosion(it->x, it->y, 0.3f, 0.5f, 0.9f);
+                    playSound(800);
+                    break;
+                case GOLDEN_EGG:
+                    score += 10 + comboCount * 3;
+                    comboCount++;
+                    createParticleExplosion(it->x, it->y, 1.0f, 0.84f, 0.0f);
+                    playSound(1000);
+                    break;
+                case POOP:
+                    if (shieldActive) {
+                        shieldHits++;
+                        if (shieldHits >= 3) {
+                            shieldActive = false;
+                            perkTimer = 0;
+                        }
+                    } else {
+                        score -= 10;
+                        if (score < 0) score = 0;
+                        comboCount = 0;
+                    }
+                    createParticleExplosion(it->x, it->y, 0.4f, 0.3f, 0.2f);
+                    playSound(200);
+                    break;
+                case BOMB:
+                    if (shieldActive) {
+                        shieldHits++;
+                        if (shieldHits >= 3) {
+                            shieldActive = false;
+                            perkTimer = 0;
+                        }
+                    } else {
+                        score -= 20;
+                        if (score < 0) score = 0;
+                        comboCount = 0;
+                        // Explosion effect
+                        for (int i = 0; i < 30; i++) {
+                            createParticleExplosion(it->x, it->y, 1.0f, 0.3f, 0.0f);
+                        }
+                    }
+                    playSound(150);
+                    break;
+                case PERK_LARGER_BASKET:
+                    largerBasketActive = true;
+                    basketWidth = 120;
+                    perkTimer = perkDuration;
+                    playSound(900);
+                    break;
+                case PERK_SLOW_TIME:
+                    slowTimeActive = true;
+                    perkTimer = perkDuration;
+                    playSound(900);
+                    break;
+                case PERK_EXTRA_TIME:
+                    timeRemaining += 10.0f;
+                    playSound(900);
+                    break;
+                case PERK_SHIELD:
+                    shieldActive = true;
+                    shieldHits = 0;
+                    perkTimer = perkDuration;
+                    playSound(900);
+                    break;
+                case PERK_MAGNET:
+                    magnetActive = true;
+                    perkTimer = perkDuration;
+                    playSound(900);
+                    break;
+                case PERK_SPEED_BOOST:
+                    speedBoostActive = true;
+                    basketSpeed = 25.0f;
+                    perkTimer = perkDuration;
+                    playSound(900);
+                    break;
+            }
+            
+            if (comboCount > maxCombo) {
+                maxCombo = comboCount;
+            }
+            
+            it = items.erase(it);
+        } else if (it->y < -30 || it->x < -50 || it->x > WINDOW_WIDTH + 50) {
+            if (it->type == NORMAL_EGG || it->type == BLUE_EGG || it->type == GOLDEN_EGG) {
+                comboCount = 0;
+            }
+            it = items.erase(it);
+        } else {
+            ++it;
+        }
+    }
+    
+    // Update particles
+    for (auto it = particles.begin(); it != particles.end();) {
+        it->x += it->vx;
+        it->y += it->vy;
+        it->vy -= 0.2f; // Gravity
+        it->life -= deltaTime * 2;
+        
+        if (it->life <= 0) {
+            it = particles.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
