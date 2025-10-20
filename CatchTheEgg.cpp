@@ -230,4 +230,31 @@ void drawChicken(Chicken& chicken) {
     glEnd();
 }
 
-
+void drawAirflowIndicator() {
+    if (!currentAirflow.active) return;
+    
+    glColor4f(1.0f, 1.0f, 1.0f, 0.6f);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
+    int numLines = 8;
+    for (int i = 0; i < numLines; i++) {
+        float y = 100 + (i * 60);
+        float offset = fmod(animTime * 100 * currentAirflow.direction, 50);
+        
+        for (int j = 0; j < 20; j++) {
+            float x = j * 50 + offset;
+            glBegin(GL_LINES);
+            glVertex2f(x, y);
+            glVertex2f(x + 30 * currentAirflow.direction, y);
+            glEnd();
+        }
+    }
+    
+    glDisable(GL_BLEND);
+    
+    // Text indicator
+    glColor3f(1.0f, 1.0f, 1.0f);
+    const char* text = currentAirflow.direction > 0 ? "WIND >>>" : "<<< WIND";
+    drawText(WINDOW_WIDTH/2 - 40, 600, text, GLUT_BITMAP_HELVETICA_18);
+}
