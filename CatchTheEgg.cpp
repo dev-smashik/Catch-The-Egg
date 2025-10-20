@@ -152,3 +152,21 @@ void init() {
     // Initialize airflow
     currentAirflow.active = false;
 }
+
+
+
+
+
+void playSound(int frequency) {
+    // On Windows, this uses the console beep
+    // On Linux/Mac, this might not work - it's just for demonstration
+    #ifdef _WIN32
+    Beep(frequency, 50);
+    #else
+    // On Unix systems, write to /dev/console (requires permissions)
+    // Or use external command: system("beep -f frequency -l 50");
+    cout << "\a"; // Terminal bell as fallback
+    #endif
+}
+
+
