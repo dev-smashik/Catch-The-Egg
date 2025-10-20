@@ -557,3 +557,40 @@ void mouseMotion(int x, int y) {
         if (basketX > WINDOW_WIDTH - basketWidth/2) basketX = WINDOW_WIDTH - basketWidth/2;
     }
 }
+
+
+
+int main(int argc, char** argv) {
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+    glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+    glutInitWindowPosition(100, 50);
+    glutCreateWindow("Catch The Eggs - Enhanced Edition");
+    
+    init();
+    
+    glutDisplayFunc(display);
+    glutReshapeFunc(reshape);
+    glutKeyboardFunc(keyboard);
+    glutKeyboardUpFunc(keyboardUp);
+    glutMouseFunc(mouse);
+    glutPassiveMotionFunc(mouseMotion);
+    glutTimerFunc(0, timer, 0);
+    
+    cout << "\n";
+    cout << "========================================\n";
+    cout << "   CATCH THE EGGS  \n";
+    cout << "========================================\n\n";
+    cout << "FEATURES:\n";
+    cout << "- Multiple chickens on different sticks\n";
+    cout << "- Wind system affects falling items\n";
+    cout << "- Shield, Magnet, Speed Boost perks\n";
+    cout << "- Combo system for bonus points\n";
+    cout << "- Particle effects and sound\n";
+    cout << "- Bombs for extra challenge\n\n";
+    cout << "Press H in menu for detailed help!\n";
+    cout << "========================================\n\n";
+    
+    glutMainLoop();
+    return 0;
+}
